@@ -5,6 +5,8 @@ Note: take care of performance
 
 # TODO - Large Systems
 
+### Full Electrical System for Engineers (barotrauma circuits too)
+
 ### Vehicle System
 
 ### Reactor System & Meltdown ###
@@ -15,9 +17,16 @@ Note: take care of performance
 - Toggle light per room / per area / per sector / full map
 
 ### SCP System
-- SCP 939
-- SCP 173
-- SCP 999
+- SCP-939
+- SCP-173
+- SCP-999
+- SCP-914
+- SCP-610
+- SCP-1370-1
+- SCP-409
+- SCP-610-S
+
+### Control Board (of site)
 
 ### Weapon System
 - OTS (over the shoulder) view
