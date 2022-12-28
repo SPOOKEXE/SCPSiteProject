@@ -9,7 +9,13 @@
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
 			"$ignoreUnknownInstances": true,
-			"$path": "src/ReplicatedStorage"
+			"$path": "src/ReplicatedStorage",
+			"Version": {
+				"$className": "StringValue",
+				"$properties": {
+					"Value": "v0.0.01"
+				}
+			}
 		},
 		"ServerScriptService": {
 			"$className": "ServerScriptService",
