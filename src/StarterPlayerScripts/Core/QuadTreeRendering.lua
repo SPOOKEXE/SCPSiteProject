@@ -1,4 +1,4 @@
-localcRunService = game:GetService('RunService')
+local RunService = game:GetService('RunService')
 
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
@@ -20,8 +20,8 @@ local RenderNodeQuadTree = false
 local VisibleBoundaryRectangle = false
 local QuadTreeMaidInstance = ReplicatedModules.Classes.Maid.New()
 
-local UPDATE_INTERVAL = 0.1 -- 0.5
-local RENDER_DISTANCE = 64
+local UPDATE_INTERVAL = 0.5
+local RENDER_DISTANCE = 32
 
 -- // Module // --
 local Module = {}
@@ -39,7 +39,7 @@ function Module:GetPropModelsFromNode(NodeInstance)
 	for _, Child in ipairs( NodeInstance:GetChildren() ) do
 		if Child:IsA('ObjectValue') and Child.Name == 'PropsModel' then
 			if Child.Value then
-				table.insert(Values, Child)
+				table.insert(Values, Child.Value)
 			else
 				warn('Render Node Part has no PropsModel Value: ' .. NodeInstance:GetFullName())
 			end
@@ -65,9 +65,10 @@ function Module:GetRenderFolderNodePoints()
 
 		local NodePosition = RenderNodePart.Position
 		local NodePoint = QuadTreeClass.Point.New(NodePosition.x, NodePosition.z)
-		NodePoint._data = { RenderInstances = RenderInstances, VisibleRenderParents = VisibleRenderParents }
+		NodePoint._data = { RenderInstances = VisibleRenderParents }
 		table.insert(NodePoints, NodePoint)
 	end
+
 	return NodePoints
 end
 
@@ -76,8 +77,8 @@ function Module:EnableQuadTreeRenderer()
 	VisibleBoundaryRectangle = QuadTreeClass.Rectangle.New(0, 0, RENDER_DISTANCE, RENDER_DISTANCE)
 
 	local NodePoints = Module:GetRenderFolderNodePoints()
-	RenderNodeQuadTree:Insert(NodePoints)
-	QuadTreeMaidInstance:Give(unpack(RenderNodeQuadTree:Show(10)))
+	RenderNodeQuadTree:InsertArray(NodePoints)
+	-- QuadTreeMaidInstance:Give(unpack(RenderNodeQuadTree:Show(10)))
 
 	local UpdateMaid = ReplicatedModules.Classes.Maid.New()
 	local ActivePoints = {}
@@ -98,13 +99,13 @@ function Module:EnableQuadTreeRenderer()
 		if CharacterCFrame then
 			VisibleBoundaryRectangle.x = CharacterCFrame.X
 			VisibleBoundaryRectangle.y = CharacterCFrame.Z
-			UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
+			-- UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
 			CharacterPoints = RenderNodeQuadTree:Query(VisibleBoundaryRectangle)
 			-- Load any points that are now visible
 			for _, point in ipairs( CharacterPoints ) do
 				-- set visible
-				for _, RenderInstance in ipairs( point._data.RenderInstances ) do
-					RenderInstance.Parent = point._data.VisibleRenderParents[RenderInstance]
+				for RenderInstance, VisibleParent in pairs( point._data.RenderInstances ) do
+					RenderInstance.Parent = VisibleParent
 				end
 				-- stop duplicate references
 				if not table.find(NewPointsArray, point) then
@@ -115,13 +116,13 @@ function Module:EnableQuadTreeRenderer()
 
 		VisibleBoundaryRectangle.x = CurrentCamera.CFrame.X
 		VisibleBoundaryRectangle.y = CurrentCamera.CFrame.Z
-		UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
+		-- UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
 		-- Load any points that are now visible
 		local CameraPoints = RenderNodeQuadTree:Query(VisibleBoundaryRectangle)
 		for _, point in ipairs( CameraPoints ) do
 			-- set visible
-			for _, RenderInstance in ipairs( point._data.RenderInstances ) do
-				RenderInstance.Parent = point._data.VisibleRenderParents[RenderInstance]
+			for RenderInstance, VisibleParent in pairs( point._data.RenderInstances ) do
+				RenderInstance.Parent = VisibleParent
 			end
 			-- stop duplicate references
 			if not table.find(NewPointsArray, point) then
@@ -136,7 +137,7 @@ function Module:EnableQuadTreeRenderer()
 				continue
 			end
 			-- no longer active
-			for _, RenderInstance in ipairs( activePoint._data.RenderInstances ) do
+			for RenderInstance, _ in pairs( activePoint._data.RenderInstances ) do
 				RenderInstance.Parent = RenderCacheFolder
 			end
 		end
@@ -149,8 +150,8 @@ function Module:EnableQuadTreeRenderer()
 		VisibleBoundaryRectangle = false
 		ActivePoints = {}
 		for _, point in ipairs( NodePoints ) do
-			for _, RenderInstance in ipairs( point._data.RenderInstances ) do
-				RenderInstance.Parent = point._data.VisibleRenderParents[RenderInstance]
+			for RenderInstance, VisibleParent in pairs( point._data.RenderInstances ) do
+				RenderInstance.Parent = VisibleParent
 			end
 			task.wait(0.025) -- slight delay to prevent crash
 		end

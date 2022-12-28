@@ -32,24 +32,42 @@ local Rectangle = { ClassName = 'Rectangle' }
 Rectangle.__index = Rectangle
 
 function Rectangle.New(x, y, w, h)
-	return setmetatable({x=x, y=y, w=w, h=h}, Rectangle)
+	return setmetatable({
+		x=x,
+		y=y,
+		w=w,
+		h=h,
+	}, Rectangle)
 end
 
 function Rectangle:Contains(point)
-	return not (
-		point.x < (self.x - (self.w)) or
-		point.x > (self.x + (self.w)) or
-		point.y < (self.y - (self.h)) or
-		point.y > (self.y + (self.h))
+	local left = self.x - (self.w / 2)
+	local right = self.x + (self.w / 2)
+	local top = self.y - (self.h / 2)
+	local bottom = self.y + (self.h / 2)
+	return (
+		left <= point.x and
+		point.x <= right and
+		top <= point.y and
+		point.y <= bottom
 	)
 end
 
 function Rectangle:Intersects(range)
+	local left = self.x - (self.w / 2)
+	local right = self.x + (self.w / 2)
+	local top = self.y - (self.h / 2)
+	local bottom = self.y + (self.h / 2)
+
+	local rangeleft = range.x - (range.w / 2)
+	local rangeright = range.x + (range.w / 2)
+	local rangetop = range.y - (range.h / 2)
+	local rangebottom = range.y + (range.h / 2)
 	return not (
-		range.x > (self.x + self.w) or
-		(range.x + range.w) < self.x or
-		range.y > (self.y + self.h) or
-		(range.y + range.h) < self.y
+		right < rangeleft or
+		rangeright < left or
+		bottom < rangetop or
+		rangebottom < top
 	)
 end
 
@@ -57,10 +75,10 @@ function Rectangle:Show( yLevel )
 	yLevel = yLevel or 20
 
 	local corners = {
-		Vector3.new(self.x + self.w, yLevel, self.y + self.h),
-		Vector3.new(self.x - self.w, yLevel, self.y + self.h),
-		Vector3.new(self.x - self.w, yLevel, self.y - self.h),
-		Vector3.new(self.x + self.w, yLevel, self.y - self.h),
+		Vector3.new(self.x + self.w/2, yLevel, self.y + self.h/2),
+		Vector3.new(self.x - self.w/2, yLevel, self.y + self.h/2),
+		Vector3.new(self.x - self.w/2, yLevel, self.y - self.h/2),
+		Vector3.new(self.x + self.w/2, yLevel, self.y - self.h/2),
 	}
 
 	local visualizeInstances = {}
@@ -122,8 +140,8 @@ function QuadTree:_Subdivide()
 
 	self._northeast = QuadTree.New({
 		boundary = Rectangle.New({
-			x = x + w/2,
-			y = y - h/2,
+			x = x + w/4,
+			y = y - h/4,
 			w = w/2,
 			h = h/2,
 		}),
@@ -132,8 +150,8 @@ function QuadTree:_Subdivide()
 
 	self._northwest = QuadTree.New({
 		boundary = Rectangle.New({
-			x = x - w/2,
-			y = y - h/2,
+			x = x - w/4,
+			y = y - h/4,
 			w = w/2,
 			h = h/2,
 		}),
@@ -142,8 +160,8 @@ function QuadTree:_Subdivide()
 
 	self._southeast = QuadTree.New({
 		boundary = Rectangle.New({
-			x = x + w/2,
-			y = y + h/2,
+			x = x + w/4,
+			y = y + h/4,
 			w = w/2,
 			h = h/2,
 		}),
@@ -152,8 +170,8 @@ function QuadTree:_Subdivide()
 
 	self._southwest = QuadTree.New({
 		boundary = Rectangle.New({
-			x = x - w/2,
-			y = y + h/2,
+			x = x - w/4,
+			y = y + h/4,
 			w = w/2,
 			h = h/2,
 		}),
@@ -195,7 +213,9 @@ function QuadTree:Query( _range, point_array )
 	if _range:Intersects(self.boundary) then
 		for _, p in ipairs(self.points) do
 			if (p.ClassName == 'Point' and _range:Contains(p)) or (p.ClassName == 'Rectangle' and _range:Intersects(p)) then
-				table.insert(point_array, p)
+				if not table.find(point_array, p) then
+					table.insert(point_array, p)
+				end
 			end
 		end
 		if self._divided then
