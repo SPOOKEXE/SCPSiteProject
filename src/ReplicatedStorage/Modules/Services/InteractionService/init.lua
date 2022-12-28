@@ -256,7 +256,7 @@ else
 	end)
 
 	RunService.Heartbeat:Connect(function()
-		local Closest, Dist = Module:GetClosestInteraction(false)
+		local Closest, _ = Module:GetClosestInteraction(false)
 		-- print(Closest ~= nil, Dist)
 		Module:InteractionVisual( Closest )
 	end)

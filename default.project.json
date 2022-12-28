@@ -1,7 +1,11 @@
 {
-	"name": "scp-scripting",
+	"name": "scp-site-x",
 	"tree": {
 		"$className": "DataModel",
+		"Players": {
+			"$className": "Players",
+			"$ignoreUnknownInstances": true
+		},
 		"ReplicatedFirst": {
 			"$ignoreUnknownInstances": true,
 			"$path": "src/ReplicatedFirst"
@@ -13,7 +17,7 @@
 			"Version": {
 				"$className": "StringValue",
 				"$properties": {
-					"Value": "v0.0.01"
+					"Value": "v0.0.03"
 				}
 			}
 		},
@@ -39,6 +43,136 @@
 				"$className": "StarterCharacterScripts",
 				"$ignoreUnknownInstances": true,
 				"$path": "src/StarterCharacterScripts"
+			}
+		},
+		"Teams": {
+			"$className": "Teams",
+			"$ignoreUnknownInstances": true,
+			"Joining": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": true,
+					"TeamColor": {
+						"BrickColor": 1001
+					}
+				}
+			},
+			"Administrative Department": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 131
+					}
+				}
+			},
+			"Internal Security Department": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 1007
+					}
+				}
+			},
+			"Intelligence Agency": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 1004
+					}
+				}
+			},
+			"External Affairs": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 306
+					}
+				}
+			},
+			"Ethics Committee": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 310
+					}
+				}
+			},
+			"Logistics Department": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 192
+					}
+				}
+			},
+			"Manufacturing Department": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 150
+					}
+				}
+			},
+			"Medical Department": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 315
+					}
+				}
+			},
+			"Mobile Task Force": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 307
+					}
+				}
+			},
+			"Scientific Department": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 48
+					}
+				}
+			},
+			"Security Department": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 327
+					}
+				}
+			},
+			"Engineering and Technical": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 44
+					}
+				}
+			},
+			"Class-D": {
+				"$className": "Team",
+				"$properties": {
+					"AutoAssignable": false,
+					"TeamColor": {
+						"BrickColor": 133
+					}
+				}
 			}
 		}
 	}
