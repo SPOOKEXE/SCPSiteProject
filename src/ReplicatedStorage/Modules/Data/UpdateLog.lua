@@ -6,5 +6,5 @@ return [[
 	v0.0.03:
 	- Interaction System
 	- Quad-Tree Rendering
-	- Start of group data	
+	- Start of Group Data	
 ]]

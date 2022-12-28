@@ -4,7 +4,7 @@ local RunService = game:GetService('RunService')
 local Module = {}
 
 Module.GroupIds = {
-	Main = -1,
+	Main = 16573733,
 
 	AdministrativeDepartment = -1,
 	InternalSecurityDepartment = -1,
@@ -109,13 +109,15 @@ Module.Teams = {
 
 function Module:GetClearance(LocalPlayer)
 	if RunService:IsStudio() then
-		return 6
+		return 7
 	end
 	local rank = LocalPlayer:GetRankInGroup(Module.GroupIds.Main)
-	if rank < 3 then
+	if rank < 2 then
 		return -1
+	elseif rank > 253 then
+		return 6 -- OMNI
 	end
-	return math.clamp(rank - 3, 0, 6)
+	return math.clamp(rank - 2, 0, 5) -- 5 = Level 5
 end
 
 function Module:CanJoinTeam(LocalPlayer, teamName)
