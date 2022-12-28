@@ -15,7 +15,7 @@ function Module:Init(otherSystems)
 	InteractionService:OnInteracted(workspace.TestButton, function(Args)
 		print(Args)
 	end, function()
-		return false
+		return true
 	end):SetFireArgs({Works = true})
 end
 

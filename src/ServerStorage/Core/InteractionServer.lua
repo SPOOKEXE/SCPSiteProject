@@ -15,7 +15,7 @@ function Module:Init(otherSystems)
 	InteractionService:OnInteracted(workspace.TestButton, function(LocalPlayer, Args)
 		print(LocalPlayer.Name, Args)
 	end, function()
-		return false
+		return true
 	end)
 end
 

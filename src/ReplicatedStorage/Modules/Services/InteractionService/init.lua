@@ -9,45 +9,35 @@ local InteractionEvent = RemoteService:GetRemote('InteractionEvent', 'RemoteEven
 local InteractionFunction = RemoteService:GetRemote('InteractionFunction', 'RemoteFunction', false)
 
 local DefaultInteractionConfig = { HoldDuration = 0.5, MaxInteractDistance = 12 }
+local FlashTI = TweenInfo.new( 0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut )
+local FlashInterval = 0.5
 
 local ActiveInteractionClasses = {}
 
 local InteractionClassModule = require(script.Interaction)
 InteractionClassModule.ParentTable = ActiveInteractionClasses
 
-local function FlashPropertyValue(TargetInstance, propertyName, newValue, duration)
-	local TI = TweenInfo.new( 0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut )
-
-	local OldProperty = TargetInstance[propertyName]
-	if typeof(OldProperty) == 'ColorSequence' then
+local function FlashPropertyValue(TargetInstance, propertyName, newValue, returnValue, duration)
+	if typeof(TargetInstance[propertyName]) == 'ColorSequence' then
 		local ColVal = Instance.new('Color3Value')
-		ColVal.Value = OldProperty.Keypoints[#OldProperty.Keypoints].Value
+		ColVal.Value = returnValue
 		ColVal.Changed:Connect(function(value)
 			TargetInstance[propertyName] = ColorSequence.new(value)
 		end)
-
-		local T = TweenService:Create( ColVal, TI, { Value = newValue } )
+		local T = TweenService:Create( ColVal, FlashTI, { Value = newValue } )
 		T.Completed:Connect(function()
-			task.wait(0.5)
-			TweenService:Create( ColVal, TI, { Value = OldProperty.Keypoints[#OldProperty.Keypoints].Value } ):Play()
+			task.wait(FlashInterval)
+			TweenService:Create( ColVal, FlashTI, { Value = returnValue } ):Play()
 		end)
 		T:Play()
 	else
-		local T = TweenService:Create( TargetInstance, TI, { [propertyName] = newValue } )
+		local T = TweenService:Create( TargetInstance, FlashTI, { [propertyName] = newValue } )
 		T.Completed:Connect(function()
-			task.wait(0.5)
-			TweenService:Create( TargetInstance, TI, { [propertyName] = OldProperty } ):Play()
+			task.wait(FlashInterval)
+			TweenService:Create( TargetInstance, FlashTI, { [propertyName] = returnValue } ):Play()
 		end)
 		T:Play()
 	end
-
-	-- if typeof(OldProperty) == 'ColorSequence' and typeof(newValue) == 'Color3' then
-	-- 	newValue = ColorSequence.new(newValue)
-	-- end
-	-- TargetInstance[propertyName] = newValue
-	-- task.delay(duration, function()
-	-- 	TargetInstance[propertyName] = OldProperty
-	-- end)
 end
 
 -- // Module // --
@@ -55,7 +45,7 @@ local Module = {}
 
 function Module:GetInteractionClass( TargetInstance, doCreateIfMissing, canUseInteractableCallback )
 	if not ActiveInteractionClasses[TargetInstance] and doCreateIfMissing then
-		local Base = InteractionClassModule.New(TargetInstance)
+		local Base = InteractionClassModule.New(TargetInstance, canUseInteractableCallback)
 		ActiveInteractionClasses[TargetInstance] = Base
 		if RunService:IsServer() then
 			InteractionEvent:FireAllClients('SetupInteraction', TargetInstance)
@@ -75,7 +65,6 @@ function Module:RemoveInteraction( TargetInstance )
 	if class then
 		class:Destroy()
 	end
-
 	if RunService:IsServer() then
 		InteractionEvent:FireAllClients('RemoveInteraction', TargetInstance)
 	end
@@ -83,28 +72,30 @@ end
 
 if RunService:IsServer() then
 
-	InteractionFunction.OnServerInvoke = function(LocalPlayer, InteractInstance, Args)
+	InteractionFunction.OnServerInvoke = function(LocalPlayer, Job, InteractInstance, Args)
 		--print(LocalPlayer.Name, InteractInstance:GetFullName(), Args)
 
 		local InteractableClass = Module:GetInteractionClass( InteractInstance, false )
 		if not InteractableClass then
-			--print('not available')
+			print('not available')
 			return 1, 'This is not an available interactable.'
 		end
 
 		if (not InteractableClass._CanUseInteractable) then
-			--print('free to use')
+			print('free to use')
 			return true
 		end
 
 		local CanUse, Err = InteractableClass._CanUseInteractable(LocalPlayer)
 		if not CanUse then
-			--print('cannot use interactable')
+			print('cannot use interactable')
 			return 2, Err or 'Cannot use this interactable.'
 		end
 
-		--print('interacted - server')
-		InteractableClass._OnInteracted:Fire(LocalPlayer, Args)
+		if Job == 'Trigger' then
+			print('interacted - server')
+			InteractableClass._OnInteracted:Fire(LocalPlayer, Args)
+		end
 		return 3, 'Successfully used interactable.'
 	end
 
@@ -165,11 +156,11 @@ else
 	end
 
 	function Module:FlashColor(TargetColor)
-		FlashPropertyValue(LineBeamInstance, 'Color', TargetColor, 2)
-		FlashPropertyValue(HighlightInstance, 'FillColor', TargetColor, 2)
-		FlashPropertyValue(BillboardInstance.Frame, 'BackgroundColor3', TargetColor, 2)
-		FlashPropertyValue(BillboardInstance.Frame.Label, 'TextColor3', TargetColor, 2)
-		FlashPropertyValue(BillboardInstance.Frame.UIStroke, 'Color', TargetColor, 2)
+		FlashPropertyValue(LineBeamInstance, 'Color', TargetColor, Color3.fromRGB(20, 102, 255), 2)
+		FlashPropertyValue(HighlightInstance, 'FillColor', TargetColor, Color3.fromRGB(26, 202, 255), 2)
+		FlashPropertyValue(BillboardInstance.Frame, 'BackgroundColor3', TargetColor, Color3.fromRGB(60, 132, 194), 2)
+		FlashPropertyValue(BillboardInstance.Frame.Label, 'TextColor3', TargetColor, Color3.fromRGB(35, 171, 255), 2)
+		FlashPropertyValue(BillboardInstance.Frame.UIStroke, 'Color', TargetColor, Color3.fromRGB(7, 69, 117), 2)
 	end
 
 	function Module:FlashText(Text)
@@ -181,59 +172,76 @@ else
 
 	local LastInteractionClass = false
 	local Holding = false
+	local Busy = false
+
+	function Module:OnInputBegan()
+		local ClosestInteraction, Dist = Module:GetClosestInteraction(false)
+		if not ClosestInteraction or Busy then
+			return
+		end
+		LastInteractionClass = ClosestInteraction
+		Busy = true
+
+		local Result, Data = InteractionFunction:InvokeServer('Check', ClosestInteraction.Interactable)
+		-- print(Result, Data)
+		if Result == 1 then
+			warn('client-based interactable')
+			if ClosestInteraction._CanUseInteractable then
+				local CanUse, Err = ClosestInteraction._CanUseInteractable(LocalPlayer)
+				if not CanUse then
+					Module:FlashText(Err or 'Cannot use this interactable.')
+					Module:FlashColor( Color3.new(1,0,0) )
+					task.delay(0.3, function()
+						Busy = false
+					end)
+					return -- cannot interact at all
+				end
+			end
+		elseif Result == 2 then
+			Module:FlashColor( Color3.new(1,0,0) )
+			Module:FlashText(Data or 'Cannot use this interactable.')
+			task.delay(0.3, function()
+				Busy = false
+			end)
+			return -- cannot interact with it at all
+		end
+
+		ClosestInteraction._OnHoldStart:Fire()
+		Holding = true
+
+		local _t = time()
+		while Holding and (time() - _t < DefaultInteractionConfig.HoldDuration) do
+			BillboardInstance.Frame.Bar.Size = UDim2.fromScale((time() - _t) / DefaultInteractionConfig.HoldDuration, 0.1)
+			task.wait()
+		end
+		BillboardInstance.Frame.Bar.Size = UDim2.fromScale(1, 0.1)
+
+		if Holding then
+			InteractionFunction:InvokeServer('Trigger', ClosestInteraction.Interactable, ClosestInteraction._Args)
+			ClosestInteraction._OnInteracted:Fire( ClosestInteraction._Args )
+			Module:FlashColor( Color3.fromRGB(19, 193, 62) )
+			Module:FlashText(Result==3 and Data or 'Successfully used interaction.')
+			BillboardInstance.Frame.Bar.Size = UDim2.fromScale(0, 0.1)
+			task.delay(0.3, function()
+				Busy = false
+			end)
+		end
+	end
+
+	function Module:OnInputEnded()
+		if LastInteractionClass then
+			LastInteractionClass._OnHoldRelease:Fire()
+			LastInteractionClass = nil
+		end
+		Holding = false
+	end
 
 	ContextActionService:BindAction('InteractionChanged', function(actionName, inputState, inputObject)
 		if actionName == 'InteractionChanged' then
 			if inputState == Enum.UserInputState.Begin then
-				local ClosestInteraction, Dist = Module:GetClosestInteraction(false)
-				if not ClosestInteraction then
-					return
-				end
-				LastInteractionClass = ClosestInteraction
-
-				ClosestInteraction._OnHoldStart:Fire()
-				Holding = true
-
-				local Result, Data = InteractionFunction:InvokeServer(ClosestInteraction.Interactable, ClosestInteraction._Args)
-				-- print(Result, Data)
-				if Result == 2 then
-					Module:FlashColor( Color3.new(1,0,0) )
-					Module:FlashText(Data or 'Cannot use this interactable.')
-					return -- cannot interact with it at all
-				elseif Result == 1 then
-					--warn('client-based interactable')
-					if ClosestInteraction._CanUseInteractable then
-						local CanUse, Err = ClosestInteraction._CanUseInteractable(LocalPlayer)
-						if not CanUse then
-							Module:FlashText(Err or 'Cannot use this interactable.')
-							Module:FlashColor( Color3.new(1,0,0) )
-							return
-						end
-					end
-				end
-
-				local _t = time()
-				while Holding and (time() - _t < DefaultInteractionConfig.HoldDuration) do
-					BillboardInstance.Frame.Bar.Size = UDim2.fromScale((time() - _t) / DefaultInteractionConfig.HoldDuration, 0.1)
-					task.wait()
-				end
-				BillboardInstance.Frame.Bar.Size = UDim2.fromScale(1, 0.1)
-
-				if Holding then
-					ClosestInteraction._OnInteracted:Fire( ClosestInteraction._Args )
-					Module:FlashColor( Color3.fromRGB(19, 193, 62) )
-					Module:FlashText(Result==3 and Data or 'Successfully used interaction.')
-					BillboardInstance.Frame.Bar.Size = UDim2.fromScale(0, 0.1)
-				end
+				Module:OnInputBegan()
 			else
-				if LastInteractionClass then
-					LastInteractionClass._OnHoldRelease:Fire()
-					task.spawn(function()
-						InteractionFunction:InvokeServer(LastInteractionClass.Interactable, true)
-					end)
-					LastInteractionClass = nil
-				end
-				Holding = false
+				Module:OnInputEnded()
 			end
 		end
 	end, false, Enum.KeyCode.E)
