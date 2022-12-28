@@ -1,4 +1,4 @@
-local RunService = game:GetService('RunService')
+localcRunService = game:GetService('RunService')
 
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
@@ -18,6 +18,7 @@ RenderCacheFolder.Parent = ReplicatedStorage
 
 local RenderNodeQuadTree = false
 local VisibleBoundaryRectangle = false
+local QuadTreeMaidInstance = ReplicatedModules.Classes.Maid.New()
 
 local UPDATE_INTERVAL = 0.1 -- 0.5
 local RENDER_DISTANCE = 64
@@ -25,30 +26,64 @@ local RENDER_DISTANCE = 64
 -- // Module // --
 local Module = {}
 
-function Module:SetupQuadTreeRenderer()
+function Module:SetRenderDistance(distance)
+	RENDER_DISTANCE = distance
+	if VisibleBoundaryRectangle then
+		VisibleBoundaryRectangle.w = distance
+		VisibleBoundaryRectangle.h = distance
+	end
+end
 
+function Module:GetPropModelsFromNode(NodeInstance)
+	local Values = {}
+	for _, Child in ipairs( NodeInstance:GetChildren() ) do
+		if Child:IsA('ObjectValue') and Child.Name == 'PropsModel' then
+			if Child.Value then
+				table.insert(Values, Child)
+			else
+				warn('Render Node Part has no PropsModel Value: ' .. NodeInstance:GetFullName())
+			end
+		end
+	end
+	return Values
+end
+
+function Module:GetRenderFolderNodePoints()
 	local RenderNodeFolder = workspace:WaitForChild('RenderNodes')
+	local NodePoints = {}
 	for _, RenderNodePart in ipairs( RenderNodeFolder:GetChildren() ) do
-		local PropsModelInstance = RenderNodePart.PropsModel.Value
-		if not PropsModelInstance then
-			warn('Render Node Part has no PropsModel Value: ' .. RenderNodePart:GetFullName())
+		local RenderInstances = Module:GetPropModelsFromNode(RenderNodePart)
+		if #RenderInstances == 0 then
 			continue
 		end
+
+		local VisibleRenderParents = {}
+		for _, ParentInstance in ipairs( RenderInstances ) do
+			VisibleRenderParents[ParentInstance] = ParentInstance.Parent
+			ParentInstance.Parent = RenderCacheFolder
+		end
+
 		local NodePosition = RenderNodePart.Position
 		local NodePoint = QuadTreeClass.Point.New(NodePosition.x, NodePosition.z)
-		NodePoint._data = { PropModelInstance = PropsModelInstance, VisiblePropParent = PropsModelInstance.Parent }
-		PropsModelInstance.Parent = RenderCacheFolder
-		RenderNodeQuadTree:Insert(NodePoint)
+		NodePoint._data = { RenderInstances = RenderInstances, VisibleRenderParents = VisibleRenderParents }
+		table.insert(NodePoints, NodePoint)
 	end
+	return NodePoints
+end
 
-	RenderNodeQuadTree:Show(10)
+function Module:EnableQuadTreeRenderer()
+	RenderNodeQuadTree = QuadTreeClass.QuadTree.New({ capacity = 8, boundary = QuadTreeClass.Rectangle.New(0,0,2048,2048) })
+	VisibleBoundaryRectangle = QuadTreeClass.Rectangle.New(0, 0, RENDER_DISTANCE, RENDER_DISTANCE)
+
+	local NodePoints = Module:GetRenderFolderNodePoints()
+	RenderNodeQuadTree:Insert(NodePoints)
+	QuadTreeMaidInstance:Give(unpack(RenderNodeQuadTree:Show(10)))
 
 	local UpdateMaid = ReplicatedModules.Classes.Maid.New()
 	local ActivePoints = {}
-	VisibleBoundaryRectangle = QuadTreeClass.Rectangle.New(0,0,RENDER_DISTANCE,RENDER_DISTANCE)
 
 	local _t = time()
-	RunService.Heartbeat:Connect(function()
+	QuadTreeMaidInstance:Give(RunService.Heartbeat:Connect(function()
 		if time() - _t < UPDATE_INTERVAL then
 			return
 		end
@@ -67,7 +102,11 @@ function Module:SetupQuadTreeRenderer()
 			CharacterPoints = RenderNodeQuadTree:Query(VisibleBoundaryRectangle)
 			-- Load any points that are now visible
 			for _, point in ipairs( CharacterPoints ) do
-				point._data.PropModelInstance.Parent = point._data.VisiblePropParent
+				-- set visible
+				for _, RenderInstance in ipairs( point._data.RenderInstances ) do
+					RenderInstance.Parent = point._data.VisibleRenderParents[RenderInstance]
+				end
+				-- stop duplicate references
 				if not table.find(NewPointsArray, point) then
 					table.insert(NewPointsArray, point)
 				end
@@ -80,7 +119,11 @@ function Module:SetupQuadTreeRenderer()
 		-- Load any points that are now visible
 		local CameraPoints = RenderNodeQuadTree:Query(VisibleBoundaryRectangle)
 		for _, point in ipairs( CameraPoints ) do
-			point._data.PropModelInstance.Parent = point._data.VisiblePropParent
+			-- set visible
+			for _, RenderInstance in ipairs( point._data.RenderInstances ) do
+				RenderInstance.Parent = point._data.VisibleRenderParents[RenderInstance]
+			end
+			-- stop duplicate references
 			if not table.find(NewPointsArray, point) then
 				table.insert(NewPointsArray, point)
 			end
@@ -88,30 +131,42 @@ function Module:SetupQuadTreeRenderer()
 
 		-- Unload any points that are no longer visible
 		for _, activePoint in ipairs( ActivePoints ) do
-			if CameraPoints and table.find( CameraPoints, activePoint ) then
+			-- if still active, skip
+			if table.find( NewPointsArray, activePoint ) then
 				continue
 			end
-			if CharacterPoints and table.find( CharacterPoints, activePoint ) then
-				continue
+			-- no longer active
+			for _, RenderInstance in ipairs( activePoint._data.RenderInstances ) do
+				RenderInstance.Parent = RenderCacheFolder
 			end
-			activePoint._data.PropModelInstance.Parent = RenderCacheFolder
 		end
 
 		ActivePoints = NewPointsArray
-	end)
+	end))
 
+	QuadTreeMaidInstance:Give(function()
+		RenderNodeQuadTree = false
+		VisibleBoundaryRectangle = false
+		ActivePoints = {}
+		for _, point in ipairs( NodePoints ) do
+			for _, RenderInstance in ipairs( point._data.RenderInstances ) do
+				RenderInstance.Parent = point._data.VisibleRenderParents[RenderInstance]
+			end
+			task.wait(0.025) -- slight delay to prevent crash
+		end
+	end)
+end
+
+function Module:DisableQuadTreeRenderer()
+	QuadTreeMaidInstance:Cleanup()
 end
 
 function Module:Init(otherSystems)
 	SystemsContainer = otherSystems
 
-	RenderNodeQuadTree = QuadTreeClass.QuadTree.New({
-		capacity = 8,
-		boundary = QuadTreeClass.Rectangle.New(0,0,2048,2048)
-	})
-
 	task.defer(function()
-		Module:SetupQuadTreeRenderer()
+		Module:EnableQuadTreeRenderer() -- run the renderer
+		-- Module:DisableQuadTreeRenderer()
 	end)
 end
 
