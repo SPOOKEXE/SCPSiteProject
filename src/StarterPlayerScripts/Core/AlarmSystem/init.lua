@@ -10,6 +10,7 @@ local AlarmToggleEvent = RemoteService:GetRemote('AlarmToggleEvent', 'RemoteEven
 local SystemsContainer = {}
 
 local AlarmTypeClasses = require(script.AlarmTypes)
+local AlarmIDToClass = { Orbit = AlarmTypeClasses.OrbitAlarmClass }
 
 local AlarmInstanceToClass = {}
 local ActiveIDsCache = {}
@@ -47,8 +48,12 @@ function Module:SetupAlarmModel(alarmInstance)
 		return
 	end
 	local alarmID = alarmInstance:GetAttribute('AlarmID') or 'Orbit'
+	if not AlarmIDToClass[alarmID] then
+		warn('Unsupported Alarm of ID: ' .. alarmID .. ' - No Class')
+		return
+	end
 	local sectorID = alarmInstance:GetAttribute('SectorID') or false
-	local alarmClass = AlarmTypeClasses.OrbitAlarmClass.New(alarmInstance, alarmID, sectorID)
+	local alarmClass = AlarmIDToClass[alarmID].New(alarmInstance, alarmID, sectorID)
 	AlarmInstanceToClass[alarmInstance] = alarmClass
 end
 

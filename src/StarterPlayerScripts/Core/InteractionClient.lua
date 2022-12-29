@@ -29,6 +29,21 @@ function Module:Init(otherSystems)
 	end, function()
 		return true
 	end)
+
+	local rendererEnabled = true
+	InteractionService:OnInteracted(workspace.TestButtonRenderer, function(Args)
+		rendererEnabled = not rendererEnabled
+		if rendererEnabled then
+			warn('Enabled QuadTree Node Renderer')
+			SystemsContainer.QuadTreeRendering:EnableQuadTreeRenderer()
+		else
+			warn('Disabled QuadTree Node Renderer')
+			SystemsContainer.QuadTreeRendering:DisableQuadTreeRenderer()
+		end
+		-- print(Args)
+	end, function()
+		return true
+	end)
 end
 
 return Module

@@ -77,23 +77,23 @@ if RunService:IsServer() then
 
 		local InteractableClass = Module:GetInteractionClass( InteractInstance, false )
 		if not InteractableClass then
-			print('not available')
+			-- print('not available')
 			return 1, 'This is not an available interactable.'
 		end
 
 		if (not InteractableClass._CanUseInteractable) then
-			print('free to use')
+			-- print('free to use')
 			return true
 		end
 
 		local CanUse, Err = InteractableClass._CanUseInteractable(LocalPlayer)
 		if not CanUse then
-			print('cannot use interactable')
+			-- print('cannot use interactable')
 			return 2, Err or 'Cannot use this interactable.'
 		end
 
 		if Job == 'Trigger' then
-			print('interacted - server')
+			-- print('interacted - server')
 			InteractableClass._OnInteracted:Fire(LocalPlayer, Args)
 		end
 		return 3, 'Successfully used interactable.'
@@ -185,7 +185,7 @@ else
 		local Result, Data = InteractionFunction:InvokeServer('Check', ClosestInteraction.Interactable)
 		-- print(Result, Data)
 		if Result == 1 then
-			warn('client-based interactable')
+			-- warn('client-based interactable')
 			if ClosestInteraction._CanUseInteractable then
 				local CanUse, Err = ClosestInteraction._CanUseInteractable(LocalPlayer)
 				if not CanUse then
