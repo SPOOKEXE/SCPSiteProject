@@ -13,7 +13,7 @@ function Module:Init(otherSystems)
 	SystemsContainer = otherSystems
 
 	InteractionService:OnInteracted(workspace.TestButton, function(Args)
-		print(Args)
+		-- print(Args)
 	end, function()
 		return true
 	end):SetFireArgs({Works = true})
