@@ -10,20 +10,35 @@ local AlarmToggleEvent = RemoteService:GetRemote('AlarmToggleEvent', 'RemoteEven
 local SystemsContainer = {}
 
 local AlarmTypeClasses = require(script.AlarmTypes)
+
 local AlarmInstanceToClass = {}
+local ActiveIDsCache = {}
 
 -- // Module // --
 local Module = {}
 
-function Module:ToggleAlarmOfID(alarmID, sectorID, enabled)
-	for _, alarmClass in pairs( AlarmInstanceToClass ) do
-		if alarmClass.AlarmID ~= alarmID then
-			continue
+function Module:ToggleAlarmOfID(index, enabled)
+	ActiveIDsCache[index] = enabled
+	if string.find(index, '_') then
+		-- alarmID & sectorID specific
+		local alarmID, sectorID = unpack(string.split( index, '_' ))
+		for _, AlarmClass in pairs( AlarmInstanceToClass ) do
+			if AlarmClass.AlarmID == alarmID and AlarmClass.SectorID == sectorID then
+				local isAlarmIDEnabled = ActiveIDsCache[AlarmClass.AlarmID]
+				local isSectorEnabled = (AlarmClass.SectorID and ActiveIDsCache[AlarmClass.SectorID])
+				AlarmClass:Toggle( ActiveIDsCache[index] or isAlarmIDEnabled or isSectorEnabled )
+			end
 		end
-		if sectorID and alarmClass.SectorID ~= sectorID then
-			continue
+	else
+		-- singular
+		for _, AlarmClass in pairs( AlarmInstanceToClass ) do
+			local isAlarmIDEnabled = ActiveIDsCache[AlarmClass.AlarmID]
+			local isSectorEnabled = (AlarmClass.SectorID and ActiveIDsCache[AlarmClass.SectorID])
+			local mixedIndex = AlarmClass.SectorID and AlarmClass.AlarmID..'_'..AlarmClass.SectorID
+			if AlarmClass.AlarmID == index or AlarmClass.SectorID == index then
+				AlarmClass:Toggle( ActiveIDsCache[mixedIndex] or isAlarmIDEnabled or isSectorEnabled )
+			end
 		end
-		alarmClass:Toggle(enabled)
 	end
 end
 

@@ -222,10 +222,11 @@ else
 			Module:FlashColor( Color3.fromRGB(19, 193, 62) )
 			Module:FlashText(Result==3 and Data or 'Successfully used interaction.')
 			BillboardInstance.Frame.Bar.Size = UDim2.fromScale(0, 0.1)
-			task.delay(0.3, function()
-				Busy = false
-			end)
 		end
+
+		task.delay(0.3, function()
+			Busy = false
+		end)
 	end
 
 	function Module:OnInputEnded()

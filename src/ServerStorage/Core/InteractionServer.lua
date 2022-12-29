@@ -12,13 +12,26 @@ local Module = {}
 function Module:Init(otherSystems)
 	SystemsContainer = otherSystems
 
-	local Enabled = false
-	InteractionService:OnInteracted(workspace.TestButton, function(LocalPlayer, Args)
-		-- print(LocalPlayer.Name, Args)
+	local EnabledAll = false
+	InteractionService:OnInteracted(workspace.TestButtonAll, function(LocalPlayer, Args)
+		EnabledAll = not EnabledAll
+		SystemsContainer.AlarmService:ToggleAlarmOfID('Orbit', false, EnabledAll)
+	end, function()
+		return true
+	end)
 
-		Enabled = not Enabled
-		SystemsContainer.AlarmService:ToggleAlarmOfID('Orbit', false, Enabled)
+	local EnabledS1 = false
+	InteractionService:OnInteracted(workspace.TestButtonS1, function(LocalPlayer, Args)
+		EnabledS1 = not EnabledS1
+		SystemsContainer.AlarmService:ToggleAlarmOfID('Orbit', 'Sector1', EnabledS1)
+	end, function()
+		return true
+	end)
 
+	local EnabledS2 = false
+	InteractionService:OnInteracted(workspace.TestButtonS2, function(LocalPlayer, Args)
+		EnabledS2 = not EnabledS2
+		SystemsContainer.AlarmService:ToggleAlarmOfID('Orbit', 'Sector2', EnabledS2)
 	end, function()
 		return true
 	end)

@@ -13,12 +13,22 @@ local EnabledCache = {}
 -- // Module // --
 local Module = {}
 
--- sectorID CAN be nil/false
+-- get index from alarmID and sectorID
+function Module:GetIndexFromIDs(alarmID, sectorID)
+	if alarmID and (not sectorID) then
+		return alarmID
+	elseif (not alarmID) and sectorID then
+		return sectorID
+	end
+	return alarmID..'_'..sectorID
+end
+
+-- alarmID OR sectorID can be nil/false
 function Module:ToggleAlarmOfID(alarmID, sectorID, enabled)
 	-- print(alarmID, sectorID, enabled)
-	local index = tostring(alarmID)..'_'..tostring(sectorID or false)
+	local index = Module:GetIndexFromIDs(alarmID, sectorID)
 	EnabledCache[index] = enabled or nil
-	AlarmToggleEvent:FireAllClients(alarmID, sectorID, enabled)
+	AlarmToggleEvent:FireAllClients(index, enabled)
 end
 
 function Module:OnPlayerAdded(LocalPlayer)
@@ -29,7 +39,8 @@ function Module:OnPlayerAdded(LocalPlayer)
 	-- set their enabled state
 	for alarmSectorID, _ in pairs( EnabledCache ) do
 		local alarmID, sectorID = string.split(alarmSectorID, '_')
-		AlarmToggleEvent:FireClient(LocalPlayer, alarmID, sectorID, true)
+		local index = Module:GetIndexFromIDs(alarmID, sectorID)
+		AlarmToggleEvent:FireClient(LocalPlayer, index, true)
 	end
 end
 

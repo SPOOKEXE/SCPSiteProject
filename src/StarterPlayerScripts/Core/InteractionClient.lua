@@ -12,11 +12,23 @@ local Module = {}
 function Module:Init(otherSystems)
 	SystemsContainer = otherSystems
 
-	InteractionService:OnInteracted(workspace.TestButton, function(Args)
+	InteractionService:OnInteracted(workspace.TestButtonAll, function(Args)
 		-- print(Args)
 	end, function()
 		return true
-	end):SetFireArgs({Works = true})
+	end)
+
+	InteractionService:OnInteracted(workspace.TestButtonS1, function(Args)
+		-- print(Args)
+	end, function()
+		return true
+	end)
+
+	InteractionService:OnInteracted(workspace.TestButtonS2, function(Args)
+		-- print(Args)
+	end, function()
+		return true
+	end)
 end
 
 return Module
