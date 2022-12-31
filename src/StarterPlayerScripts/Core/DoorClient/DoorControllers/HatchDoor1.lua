@@ -1,13 +1,13 @@
 -- SPOOK_EXE
-local BaseDoor = require(script.Parent.Parent.BaseDoor)
+local BaseDoorClassModule = require(script.Parent.Parent.BaseDoor)
 
 -- // Class // --
-local Class = setmetatable({}, BaseDoor)
+local Class = setmetatable({ SystemsContainer = {} }, BaseDoorClassModule)
 Class.__index = Class
-Class.super = BaseDoorClassModule
+--Class.super = BaseDoorClassModule
 
 function Class.New( ... )
-	local self = setmetatable(BaseDoor.New( ... ), Class)
+	local self = setmetatable(BaseDoorClassModule.New( ... ), Class)
 	self:Setup()
 	return self
 end
@@ -17,7 +17,7 @@ function Class:Setup()
 end
 
 function Class:Toggle()
-   -- TODO: change model
+	-- TODO: change model
 end
 
 return Class

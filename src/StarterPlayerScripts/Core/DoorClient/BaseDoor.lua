@@ -1,5 +1,3 @@
-
-local HttpService = game:GetService('HttpService')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ReplicatedModules = require(ReplicatedStorage:WaitForChild('Modules'))
 local DoorConfigModule = ReplicatedModules.Data.DoorConfig
@@ -68,8 +66,8 @@ function Class.New(Model, forceState)
 		DoorModel = Model
 	end
 
-	local boundCF, boundSize = DoorModel:GetBoundingBox()
-	local bPart = Model.Detector	
+	--local boundCF, boundSize = DoorModel:GetBoundingBox()
+	--local bPart = Model:FindFirstChildWhichIsA('Detector')
 
 	self:Setup()
 
@@ -77,32 +75,36 @@ function Class.New(Model, forceState)
 end
 
 function Class:GetAttribute(attribute)
-	self:GetAttribute(attribute)
+	self.Model:GetAttribute(attribute)
 end
 
 function Class:SetAttribute(attribute, value)
-	self:SetAttribute(attribute, value)
+	self.Model:SetAttribute(attribute, value)
 end
 
 function Class:GetAttributeChangedSignal(attribute)
 	return self.Model:GetAttributeChangedSignal(attribute)
 end
 
-function Class:Toggle( forcedState )
+function Class:Toggle()
 	if self:GetAttribute('DoorDestroyedValue') then
 		return false
 	end
 	-- move model
-	--warn('Door Toggled: ', self.Config.ID, self.Config.DoorClassID, self.StateValue.Value)
+	warn('Door Toggled: ', self:GetAttribute('DoorID'), self:GetAttribute('StateValue'))
 	return true
-end	
+end
 
 function Class:Destroy()
 	self.DoorMaid:Cleanup()
 end
 
 function Class:Setup()
+	self:Toggle()
 
+	self.Model:GetAttributeChangedSignal('StateValue'):Connect(function()
+		self:Toggle()
+	end)
 end
 
 -- Reset the door back from its destroyed state

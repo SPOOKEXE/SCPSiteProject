@@ -1,4 +1,5 @@
 local RunService = game:GetService('RunService')
+local Teams = game:GetService('Teams')
 
 -- // Module // --
 local Module = {}
@@ -108,37 +109,46 @@ Module.Teams = {
 }
 
 function Module:GetClearance(LocalPlayer)
+	-- studio testing
 	if RunService:IsStudio() then
 		return 7
 	end
+	-- get rank in group <2 = Guest & Class-D
 	local rank = LocalPlayer:GetRankInGroup(Module.GroupIds.Main)
 	if rank < 2 then
 		return -1
 	elseif rank > 253 then
 		return 6 -- OMNI
 	end
-	return math.clamp(rank - 2, 0, 5) -- 5 = Level 5
+	return math.clamp(rank - 2, 0, 5) -- 5 = Level 5, 0 = Level 0
 end
 
 function Module:CanJoinTeam(LocalPlayer, teamName)
+	-- If they have omni clearance
 	local clearance = Module:GetClearance(LocalPlayer)
 	if clearance == 6 then
 		return true
 	end
 
-	local teamObject = game.Teams:FindFirstChild(teamName)
-	if teamObject == nil then return false end
+	-- If the team does not exist
+	local teamObject = teamName and Teams:FindFirstChild(teamName)
+	if not teamObject then
+		return false
+	end
 
-	if teamName == "Foundation Personnel" and clearance >= 0 then
+	-- if they want class-d, available to all
+	if teamName == "Class-D" then--and clearance == -1 then
 		return true
-	elseif teamName == "Class-D" and clearance == -1 then
+	elseif teamName == "Foundation Personnel" and clearance >= 0 then -- foundation personnel for L0+
 		return true
 	end
 
+	-- if there is group configuration for that team, otherwise always deny
 	if Module.Teams[teamName] == nil then
 		return false
 	end
 
+	-- if they have the required rank in the group
 	local teamData = Module.Teams[teamName]
 	return LocalPlayer:GetRankInGroup(teamData.GroupId) >= teamData.rank
 end

@@ -1,3 +1,5 @@
+local UserInputService = game:GetService('UserInputService')
+
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
 local LocalAssets = LocalPlayer:WaitForChild('PlayerScripts'):WaitForChild('Assets')
@@ -8,6 +10,9 @@ local MainMenuFrame = Interface:WaitForChild('MainMenuFrame')
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ReplicatedModules = require(ReplicatedStorage:WaitForChild('Modules'))
+
+local RemoteService = ReplicatedModules.Services.RemoteService
+local MainMenuFunction = RemoteService:GetRemote('MainMenuFunction', 'RemoteFunction', false)
 
 local SystemsContainer = {}
 
@@ -40,15 +45,22 @@ function Module:OpenWidget()
 		if Frame:IsA('Frame') then
 			local TargetFrame = MainMenuFrame.ActiveFrame:FindFirstChild(Frame.Name..'Frame')
 			if not TargetFrame then
-				warn('Cannot find frame for button: '..Frame.Name)
+				-- warn('Cannot find frame for button: '..Frame.Name)
 				continue
 			end
 			Module.WidgetMaid:Give(Frame.Button.Activated:Connect(function()
-				print('button sound')
+				-- print('button sound')
 				Module:ToggleMenuFrame(TargetFrame)
 			end))
 		end
 	end
+
+	-- TEMPORARY
+	Module.WidgetMaid:Give( MainMenuFrame.MenuButtons.Play.Button.Activated:Connect(function()
+		if MainMenuFunction:InvokeServer('Spawn', 'Class-D') then
+			Module:CloseWidget()
+		end
+	end ))
 
 	MainMenuFrame.Visible = true
 	Module:UpdateWidget()

@@ -93,11 +93,11 @@ function Class.New(Model, forceState)
 end
 
 function Class:GetAttribute(attribute)
-	self:GetAttribute(attribute)
+	self.Model:GetAttribute(attribute)
 end
 
 function Class:SetAttribute(attribute, value)
-	self:SetAttribute(attribute, value)
+	self.Model:SetAttribute(attribute, value)
 end
 
 function Class:GetAttributeChangedSignal(attribute)

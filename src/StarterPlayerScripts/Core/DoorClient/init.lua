@@ -35,11 +35,11 @@ function Module:RegisterDoor( DoorModel )
 	end
 
 	-- Does the door have a doorId attribute?
-	local doorID = DoorModel:GetAttribute('DoorID')
-	if not doorID then
-		warn('Door does not have a DoorID attribute. ' .. DoorModel:GetFullName())
-		return
-	end
+	local doorID = DoorModel.Name --DoorModel:GetAttribute('DoorID')
+	-- if not doorID then
+	-- 	warn('Door does not have a DoorID attribute. ' .. DoorModel:GetFullName())
+	-- 	return
+	-- end
 
 	-- does this doorId have a configuration setup?
 	local ConfigData = DoorConfigModule:GetDoorConfig( doorID )
@@ -61,8 +61,8 @@ function Module:RegisterDoor( DoorModel )
 		return
 	end
 
-	--print(DoorModel.Name, ControllerClass)
-	local Class = require(ControllerClass).New(DoorModel, false)
+	-- print(DoorModel.Name, ControllerClass)
+	local Class = ControllerClass.New(DoorModel, false)
 	table.insert(ActiveDoorControllers, Class)
 	return true, Class
 end
@@ -92,13 +92,13 @@ function Module:Init(otherSystems)
 	for _, Cached in pairs( CachedDoorControllerClasses ) do
 		Cached.SystemsContainer = SystemsContainer
 	end
-	
+
 	for _, Model in ipairs( CollectionService:GetTagged("DoorInstance") ) do
-	    Module:RegisterDoor(Model)
+		Module:RegisterDoor(Model)
 	end
-	
+
 	CollectionService:GetInstanceAddedSignal("DoorInstance"):Connect(function(Model)
-	    Module:RegisterDoor(Model)
+		Module:RegisterDoor(Model)
 	end)
 end
 

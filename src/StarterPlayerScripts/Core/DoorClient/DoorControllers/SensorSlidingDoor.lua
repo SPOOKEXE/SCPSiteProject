@@ -1,12 +1,13 @@
 -- SPOOK_EXE
-local BaseDoor = require(script.Parent.Parent.BaseDoor)
+local BaseDoorClassModule = require(script.Parent.Parent.BaseDoor)
 
 -- // Class // --
-local Class = setmetatable({}, BaseDoor)
+local Class = setmetatable({}, BaseDoorClassModule)
 Class.__index = Class
+--Class.super = BaseDoorClassModule
 
 function Class.New( ... )
-	local self = setmetatable(BaseDoor.New( ... ), Class)
+	local self = setmetatable(BaseDoorClassModule.New( ... ), Class)
 	self:Setup()
 	return self
 end
@@ -17,21 +18,10 @@ end
 
 function Class:Setup()
 	--print('Setup', script.Name, ' - Create Interaction Methods')
-
-	local RunService = game:GetService('RunService')
-	local WithinSensor = false
-	RunService.Heartbeat:Connect(function()
-		WithinSensor = self:IsHumanoidInSensors()
-		if self:GetAttribute('StateValue') ~= WithinSensor then
-			self:Toggle(WithinSensor)
-		end
-	end)
-
-	self:SetAttribute('IgnoreDoor', true)
 end
 
 function Class:Toggle()
-   -- TODO: change model
+	-- TODO: change model
 end
 
 return Class
