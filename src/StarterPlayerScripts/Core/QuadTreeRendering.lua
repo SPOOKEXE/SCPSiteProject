@@ -63,10 +63,18 @@ function Module:GetRenderFolderNodePoints()
 			ParentInstance.Parent = RenderCacheFolder
 		end
 
+		local NodeType = RenderNodePart:GetAttribute('RenderType')
 		local NodePosition = RenderNodePart.Position
-		local NodePoint = QuadTreeClass.Point.New(NodePosition.x, NodePosition.z)
-		NodePoint._data = { RenderInstances = VisibleRenderParents }
-		table.insert(NodePoints, NodePoint)
+		if (not NodeType) or NodeType == 'RenderNode' then
+			local NodePoint = QuadTreeClass.Point.New(NodePosition.x, NodePosition.z)
+			NodePoint._data = { RenderInstances = VisibleRenderParents }
+			table.insert(NodePoints, NodePoint)
+		elseif NodeType == 'RenderRegion' then
+			local NodeSize = RenderNodePart.Size
+			local NodeRect = QuadTreeClass.Rectangle.New(NodePosition.X, NodePosition.Z, NodeSize.X, NodeSize.Z)
+			NodeRect._data = { RenderInstances = VisibleRenderParents }
+			table.insert(NodePoints, NodeRect)
+		end
 	end
 
 	return NodePoints
@@ -78,7 +86,7 @@ function Module:EnableQuadTreeRenderer()
 
 	local NodePoints = Module:GetRenderFolderNodePoints()
 	RenderNodeQuadTree:InsertArray(NodePoints)
-	-- QuadTreeMaidInstance:Give(unpack(RenderNodeQuadTree:Show(10)))
+	--QuadTreeMaidInstance:Give(unpack(RenderNodeQuadTree:Show(10)))
 
 	local UpdateMaid = ReplicatedModules.Classes.Maid.New()
 	local ActivePoints = {}
@@ -99,7 +107,7 @@ function Module:EnableQuadTreeRenderer()
 		if CharacterCFrame then
 			VisibleBoundaryRectangle.x = CharacterCFrame.X
 			VisibleBoundaryRectangle.y = CharacterCFrame.Z
-			-- UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
+			--UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
 			CharacterPoints = RenderNodeQuadTree:Query(VisibleBoundaryRectangle)
 			-- Load any points that are now visible
 			for _, point in ipairs( CharacterPoints ) do
@@ -116,7 +124,7 @@ function Module:EnableQuadTreeRenderer()
 
 		VisibleBoundaryRectangle.x = CurrentCamera.CFrame.X
 		VisibleBoundaryRectangle.y = CurrentCamera.CFrame.Z
-		-- UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
+		--UpdateMaid:Give( unpack(VisibleBoundaryRectangle:Show( 10 )) )
 		-- Load any points that are now visible
 		local CameraPoints = RenderNodeQuadTree:Query(VisibleBoundaryRectangle)
 		for _, point in ipairs( CameraPoints ) do

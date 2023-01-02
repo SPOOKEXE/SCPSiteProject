@@ -38,7 +38,7 @@ Class.super = false
 function Class.New(Model, forceState)
 	local ConfigTable = DoorConfigModule:GetDoorConfig( Model.Name ) :: DoorConfigTable
 
-	--Model:SetAttribute('StateEnabled', (forceState == true))
+	--Model:SetAttribute('StateValue', (forceState == true))
 	--Model:SetAttribute('DoorDestroyed', false)
 	--Model:SetAttribute('PowerEnabledOverride', false)
 	--Model:SetAttribute('ControlPanelOverride', false)
@@ -99,10 +99,28 @@ function Class:Destroy()
 	self.DoorMaid:Cleanup()
 end
 
+function Class:AdjustSounds(tweenDuration)
+	for _, soundInstance in ipairs(self.Model.PromptNode:GetChildren()) do
+		if not soundInstance:IsA('Sound') then
+			continue
+		end
+		task.defer(function()
+			if soundInstance.IsLoaded then
+				soundInstance.PlaybackSpeed = (soundInstance.TimeLength / tweenDuration)
+			else
+				local event; event = soundInstance.Loaded:Connect(function()
+					event:Disconnect()
+					soundInstance.PlaybackSpeed = (soundInstance.TimeLength / tweenDuration)
+				end)
+			end
+		end)
+	end
+end
+
 function Class:Setup()
 	self:Toggle()
 
-	self.Model:GetAttributeChangedSignal('StateValue'):Connect(function()
+	self:GetAttributeChangedSignal('StateValue'):Connect(function()
 		self:Toggle()
 	end)
 end

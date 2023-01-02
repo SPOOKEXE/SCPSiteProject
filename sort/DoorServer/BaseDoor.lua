@@ -47,7 +47,7 @@ function Class.New(Model, forceState)
 	local ConfigTable = DoorConfigModule:GetDoorConfig( Model.Name ) :: DoorConfigTable
 	local DoorUUID = HttpService:GenerateGUID(false)
 
-	Model:SetAttribute('StateEnabled', (forceState == true))
+	Model:SetAttribute('StateValue', (forceState == true))
 	Model:SetAttribute('DoorID', ConfigTable.DoorClassID)
 	Model:SetAttribute('DoorDestroyed', false)
 	Model:SetAttribute('PowerEnabledOverride', false)
@@ -93,7 +93,7 @@ function Class.New(Model, forceState)
 end
 
 function Class:GetAttribute(attribute)
-	self.Model:GetAttribute(attribute)
+	return self.Model:GetAttribute(attribute)
 end
 
 function Class:SetAttribute(attribute, value)
@@ -140,7 +140,7 @@ function Class:HasClearance( ClearanceConfigTable, HighestLevel, Departments )
 	if #ClearanceConfigTable == 0 then
 		ClearanceConfigTable = { ClearanceConfigTable }
 	end
-	for _, ClearanceConfig in ipairs( ClearanceConfigTable ) do
+	for i, ClearanceConfig in ipairs( ClearanceConfigTable ) do
 		-- If they have any high enough level OR the correct department cards then allow access
 		local enoughKeyLevel = (HighestLevel >= ClearanceConfig.KeyLevel)
 		local hasAllowedDepartment = false
@@ -151,25 +151,30 @@ function Class:HasClearance( ClearanceConfigTable, HighestLevel, Departments )
 				break
 			end
 		end
+		--print(i, ClearanceConfig, enoughKeyLevel, hasAllowedDepartment)
 		if enoughKeyLevel or hasAllowedDepartment then
 			-- warn( HighestLevel and 'Level' or 'No Level', hasAllowedDepartment and 'Department' or 'No Department' )
 			return true
 		end
 	end
+	--print('cannot')
 	return false
 end
 
 function Class:CanOpen( LocalPlayer )
+	--print(LocalPlayer.Name)
 	if self:GetAttribute('SCP079Override') and (not self:IsPlayer079( LocalPlayer )) then
+		--print('SCP-079 override')
 		return false
 	elseif self:GetAttribute('ControlPanelOverride') then
+		--print('Control panel override')
 		return false
 	end
 
 	local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
 	local ClearanceConfig : ClearanceConfigTable = self.Config.ClearanceConfig
 
-	if Humanoid.Health > 0 and ClearanceConfig and (not self:GetAttribute('ControlPanelOverride')) then
+	if Humanoid.Health > 0 and ClearanceConfig then
 		local HighestLevel = -1
 		local Departments = { }
 
@@ -192,9 +197,11 @@ function Class:CanOpen( LocalPlayer )
 			CheckToolData(Tool)
 		end
 
+		--print(HighestLevel, Departments, ClearanceConfig)
 		return Class:HasClearance( ClearanceConfig, HighestLevel, Departments )
 	end
 
+	--print('no config - open for all')
 	return (ClearanceConfig == nil) -- no config = open for all
 end
 
@@ -205,8 +212,9 @@ function Class:Toggle( forcedState )
 	if typeof(forcedState) == 'boolean' then
 		self:SetAttribute('StateValue', forcedState or false)
 	else
-		self:SetAttribute('StateValue', self:GetAttribute('StateValue'))
+		self:SetAttribute('StateValue', not self:GetAttribute('StateValue'))
 	end
+	--print( self.Model:GetFullName(), self:GetAttribute('StateValue') )
 	--warn('Door Toggled: ', self.Config.ID, self.Config.DoorClassID, self.StateValue.Value)
 end
 

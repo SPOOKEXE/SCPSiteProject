@@ -3,7 +3,6 @@ local BaseDoorClassModule = require(script.Parent.Parent.BaseDoor)
 -- // Class // --
 local Class = setmetatable({ SystemsContainer = {} }, BaseDoorClassModule)
 Class.__index = Class
---Class.super = BaseDoorClassModule
 
 function Class.New(...)
 	local self = setmetatable( BaseDoorClassModule.New(...), Class )
@@ -17,10 +16,6 @@ end
 
 function Class:Setup()
 	-- Controlled by lever
-end
-
-function Class:Toggle()
-	-- TODO: change model
 end
 
 return Class

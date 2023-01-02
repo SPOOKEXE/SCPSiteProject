@@ -1,5 +1,4 @@
 -- SPOOK_EXE
-
 local BaseDoor = require(script.Parent.Parent.BaseDoor)
 
 -- // Class // --
@@ -13,15 +12,15 @@ function Class.New( ... )
 end
 
 function Class:Setup()
+
 	--print('Setup', script.Name, ' - Create Interaction Methods')
 
-	--[[
 	local HttpService = game:GetService('HttpService')
 	local proximityPrompt = Instance.new('ProximityPrompt')
 	proximityPrompt.Name = 'ToggleDoorPrompt'
 	proximityPrompt.Enabled = true
 	proximityPrompt.ActionText = 'Toggle Door'
-	proximityPrompt.ObjectText = 'Office Door'
+	proximityPrompt.ObjectText = 'Hatch Door'
 	proximityPrompt.ClickablePrompt = true
 	proximityPrompt.KeyboardKeyCode = Enum.KeyCode.F
 	proximityPrompt.HoldDuration = 2
@@ -51,7 +50,8 @@ function Class:Setup()
 		end
 	end)
 
-	proximityPrompt.Parent = self.Model.PromptNode]]
+	proximityPrompt.Parent = self.Model.PromptNode
+
 end
 
 return Class

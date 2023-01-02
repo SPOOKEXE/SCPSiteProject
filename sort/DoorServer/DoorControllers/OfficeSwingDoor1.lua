@@ -15,7 +15,6 @@ end
 function Class:Setup()
 	--print('Setup', script.Name, ' - Create Interaction Methods')
 
-	--[[
 	local HttpService = game:GetService('HttpService')
 	local proximityPrompt = Instance.new('ProximityPrompt')
 	proximityPrompt.Name = 'ToggleDoorPrompt'
@@ -51,7 +50,7 @@ function Class:Setup()
 		end
 	end)
 
-	proximityPrompt.Parent = self.Model.PromptNode]]
+	proximityPrompt.Parent = self.Model.PromptNode
 end
 
 return Class
