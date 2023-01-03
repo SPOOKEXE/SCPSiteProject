@@ -13,7 +13,7 @@ function Class.New(...)
 	local self = setmetatable( BaseDoorClassModule.New(...), Class )
 
 	self.CloseCFrame = self.Model.Door:GetPivot()
-	self.OpenCFrame = self.CloseCFrame + Vector3.new(0, 17, 0)
+	self.OpenCFrame = self.CloseCFrame + Vector3.new(0, 13, 0)
 
 	local CFValue = Instance.new('CFrameValue')
 	CFValue.Name = 'CFrameV'

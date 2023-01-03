@@ -13,7 +13,7 @@ function Class.New(...)
 	local self = setmetatable( BaseDoorClassModule.New(...), Class )
 
 	self.CloseCFrame = self.Model.Door:GetPivot()
-	self.OpenCFrame = self.CloseCFrame + Vector3.new(0, 17, 0)
+	self.OpenCFrame = self.CloseCFrame + Vector3.new(0, 10, 0)
 
 	local CFValue = Instance.new('CFrameValue')
 	CFValue.Name = 'CFrameV'
@@ -40,26 +40,18 @@ function Class:Update( noSound )
 		return false
 	end
 
-	local isClosed = self:GetAttribute('StateValue')
-	local nextCFrame = isClosed and self.CloseCFrame or self.OpenCFrame
+	local isOpen = self:GetAttribute('StateValue')
+	local nextCFrame = isOpen and self.OpenCFrame or self.CloseCFrame
 
-	local maxDeltaY = (self.OpenCFrame.Position - self.CloseCFrame.Position).Y
-
-	local activeCFrame = self.Model.Door:GetPivot()
-	local activeDeltaY = math.abs( activeCFrame.Y - nextCFrame.Y )
-	local deltaDecimal = math.clamp(activeDeltaY / maxDeltaY, 0, 1)
-
-	local activeTweenInfo = TweenInfo.new(deltaDecimal * defaultTweenInfo.Time, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-
-	local Tween = TweenService:Create(self.CFrameValue, activeTweenInfo, { Value = nextCFrame })
+	local Tween = TweenService:Create(self.CFrameValue, defaultTweenInfo, { Value = nextCFrame })
 	Tween.Completed:Connect(function()
-		self:PlaySound( activeTweenInfo.Time, nil, true )
+		self:PlaySound( defaultTweenInfo.Time, nil, true )
 	end)
 	Tween:Play()
 
-	if (not noSound) and (deltaDecimal > 0.1) then
+	if (not noSound) then
 		task.delay(0.025, function()
-			self:PlaySound( activeTweenInfo.Time, not isClosed, nil )
+			self:PlaySound( defaultTweenInfo.Time, isOpen, nil )
 		end)
 	end
 

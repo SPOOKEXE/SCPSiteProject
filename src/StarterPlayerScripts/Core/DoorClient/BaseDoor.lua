@@ -1,7 +1,9 @@
+local TweenService = game:GetService('TweenService')
+
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ReplicatedModules = require(ReplicatedStorage:WaitForChild('Modules'))
-local DoorConfigModule = ReplicatedModules.Data.DoorConfig
 
+local DoorConfigModule = ReplicatedModules.Data.DoorConfig
 local MaidInstanceClass = ReplicatedModules.Classes.Maid
 
 type ClearanceConfigTable = {
@@ -69,16 +71,12 @@ function Class:GetAttributeChangedSignal(attribute)
 	return self.Model:GetAttributeChangedSignal(attribute)
 end
 
-function Class:Update( noSound )
+function Class:Update( _ )
 	if self:GetAttribute('DoorDestroyedValue') then
 		return false
 	end
 	self._LastState = self:GetAttribute('StateValue')
 	return true
-end
-
-function Class:Destroy()
-	self.DoorMaid:Cleanup()
 end
 
 function Class:AdjustSounds(tweenDuration)
@@ -99,7 +97,7 @@ function Class:AdjustSounds(tweenDuration)
 	end
 end
 
-function Class:PlaySound( isDoorOpening, stopAll )
+function Class:PlaySound( duration, isDoorOpening, stopAll )
 	local baseString = isDoorOpening and 'Open' or 'Close'
 
 	for _, soundInstance in ipairs( self.Model.PromptNode:GetChildren() ) do
@@ -113,9 +111,17 @@ function Class:PlaySound( isDoorOpening, stopAll )
 		end
 
 		if string.find(soundInstance.Name, baseString) then
+			soundInstance.Volume = 0
+			TweenService:Create( soundInstance, TweenInfo.new(duration/4), { Volume = 0.35 } ):Play()
+			task.delay(duration/2, function()
+				TweenService:Create( soundInstance, TweenInfo.new(duration/4), { Volume = 0 }  ):Play()
+			end)
 			soundInstance:Play()
 		else
-			soundInstance:Stop()
+			TweenService:Create( soundInstance, TweenInfo.new(duration/4), { Volume = 0 } ):Play()
+			task.delay(duration/4, function()
+				soundInstance:Stop()
+			end)
 		end
 	end
 end
@@ -132,7 +138,7 @@ function Class:Setup()
 	end)
 end
 
--- Demolish the door from its 'working' state
+-- Demolish the door
 function Class:Demolish()
 	if not self.Destroyed then
 		self.Destroyed = true
@@ -140,6 +146,10 @@ function Class:Demolish()
 		return true
 	end
 	return false
+end
+
+function Class:Destroy()
+	self.DoorMaid:Cleanup()
 end
 
 return Class

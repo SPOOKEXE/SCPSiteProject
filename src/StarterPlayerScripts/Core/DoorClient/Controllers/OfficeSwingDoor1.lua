@@ -24,22 +24,15 @@ function Class.New(...)
 	CFValue.Parent = self.Model
 	self.CFrameValue = CFValue
 
+	self.DoorMaid:Give(CFValue, function()
+		self.CloseCFrame = nil
+		self.OpenCFrame = nil
+		self.CFrameValue = nil
+	end)
+
 	self:Update(true)
 
 	return setmetatable(self, Class)
-end
-
-function Class:Demolish()
-	if Class.super.Demolish(self) then
-		self.CloseCFrame = nil
-		self.OpenCFrame = nil
-		if self.CFrameValue then
-			self.CFrameValue:Destroy()
-		end
-		self.CFrameValue = nil
-		return true
-	end
-	return false
 end
 
 function Class:Update( noSound )
@@ -51,14 +44,14 @@ function Class:Update( noSound )
 	local nextCFrame = isOpen and self.OpenCFrame or self.CloseCFrame
 
 	local Tween = TweenService:Create(self.CFrameValue, defaultTweenInfo, { Value = nextCFrame })
-	--[[Tween.Completed:Connect(function()
-		self:PlaySound( false, nil )
-	end)]]
+	Tween.Completed:Connect(function()
+		self:PlaySound( defaultTweenInfo.Time, nil, true )
+	end)
 	Tween:Play()
 
 	if not noSound then
 		task.delay(0.025, function()
-			self:PlaySound( isOpen, nil )
+			self:PlaySound( defaultTweenInfo.Time, isOpen, nil )
 		end)
 	end
 

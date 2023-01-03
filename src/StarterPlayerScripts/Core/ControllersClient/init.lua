@@ -13,16 +13,15 @@ local Module = {}
 function Module:RegisterController( Model )
 	local ControllerID = Model:GetAttribute('ControllerID')
 	if not ControllerID then
-		--warn('ControllerID is not set on model: ' .. Model:GetFullName())
+		warn('ControllerID is not set on model: ' .. Model:GetFullName())
 		return
 	end
 
 	local ControllerClass = ControllerClassCache[ ControllerID ]
 	if not ControllerClass then
-		--warn('ControllerID is not a valid controller: ' .. ControllerID .. ' using default.')
+		warn('ControllerID is not a valid controller: ' .. ControllerID .. ' using default.')
+		ControllerClass = ControllerClassCache.BaseController
 	end
-
-	ControllerClass = ControllerClassCache.BaseController
 
 	local Controller = ControllerClass.New( Model )
 	ActiveControllerClasses[ Controller ] = ControllerClass

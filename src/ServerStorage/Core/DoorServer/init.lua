@@ -31,7 +31,7 @@ local Module = {}
 function Module:RegisterDoor( DoorModel )
 	-- Is the door an instance?
 	if typeof(DoorModel) ~= 'Instance' then
-		--warn('DoorModel is not an instance. ' .. typeof(DoorModel) .. "\n" .. debug.traceback())
+		warn('DoorModel is not an instance. ' .. typeof(DoorModel) .. "\n" .. debug.traceback())
 		return false
 	end
 
@@ -41,8 +41,8 @@ function Module:RegisterDoor( DoorModel )
 	-- does this doorId have a configuration setup?
 	local ConfigData = doorID and DoorConfigModule:GetDoorConfig( doorID )
 	if not ConfigData then
-		--warn('DoorID does not have a configuration setup: ' .. tostring(doorID))
-		return
+		warn('DoorID does not have a configuration setup: ' .. tostring(doorID))
+		return false
 	end
 
 	-- Get the controller class
@@ -54,8 +54,8 @@ function Module:RegisterDoor( DoorModel )
 	end
 
 	if not ControllerClass then
-		--warn('[DOOR CONTROLLER - SERVER] No Door Controller Found: '..tostring(ConfigData.ClientDoorClassID or ConfigData.DoorClassID))
-		return
+		warn('[DOOR CONTROLLER - SERVER] No Door Controller Found: '..tostring(ConfigData.ClientDoorClassID or ConfigData.DoorClassID))
+		return false
 	end
 
 	--print(DoorModel.Name, ControllerClass)
@@ -91,7 +91,7 @@ function Module:Init(otherSystems)
 	-- require all the controller classes
 	CachedDoorControllerClasses.BaseDoor = require(script.BaseDoor)
 	for _, ControllerModule in ipairs( DoorControllersFolder:GetChildren() ) do
-		CachedDoorControllerClasses[ControllerModule.Name ] = require(ControllerModule)
+		CachedDoorControllerClasses[ControllerModule.Name] = require(ControllerModule)
 	end
 
 	-- Set the SystemsContainer for all cached modules

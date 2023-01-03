@@ -38,7 +38,7 @@ type DoorConfigTable = {
 local Class = { SystemsContainer = {} }
 Class.__index = Class
 
-function Class.New(Model, enabledState)
+function Class.New(Model)
 	local ConfigTable = DoorConfigModule:GetDoorConfig( Model.Name ) :: DoorConfigTable
 
 	local DoorClone = Model:Clone()
@@ -55,7 +55,7 @@ function Class.New(Model, enabledState)
 		DoorControlNodes = {},
 		Config = ConfigTable,
 
-		_LastState = enabledState or nil, -- last state of the door
+		_LastState = nil, -- last state of the door
 	}, Class)
 
 	self:_SetupAttributes()
