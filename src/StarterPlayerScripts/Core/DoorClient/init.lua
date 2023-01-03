@@ -1,11 +1,13 @@
 local CollectionService = game:GetService("CollectionService")
+
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ReplicatedModules = require(ReplicatedStorage:WaitForChild('Modules'))
+
 local DoorConfigModule = ReplicatedModules.Data.DoorConfig
 
-local DoorControllersFolder = script:WaitForChild('DoorControllers')
-
 local SystemsContainer = {}
+
+local DoorControllersFolder = script:WaitForChild('Controllers')
 
 local CachedDoorControllerClasses = {}
 local ActiveDoorControllers = {}
@@ -26,13 +28,6 @@ end
 -- // Module // --
 local Module = {}
 
--- Set the override on ALL doors in the site. Specific doors need to be done on a per-class basis
-function Module:SetGlobalPowerOverride( globalPowerOverride )
-	for _, doorClass in ipairs( ActiveDoorControllers ) do
-		doorClass:SetPowerDisabledOverride( globalPowerOverride )
-	end
-end
-
 function Module:RegisterDoor( DoorModel )
 	-- Is the door an instance?
 	if typeof(DoorModel) ~= 'Instance' then
@@ -42,13 +37,9 @@ function Module:RegisterDoor( DoorModel )
 
 	-- Does the door have a doorId attribute?
 	local doorID = DoorModel.Name --DoorModel:GetAttribute('DoorID')
-	-- if not doorID then
-	-- 	warn('Door does not have a DoorID attribute. ' .. DoorModel:GetFullName())
-	-- 	return
-	-- end
 
 	-- does this doorId have a configuration setup?
-	local ConfigData = DoorConfigModule:GetDoorConfig( doorID )
+	local ConfigData = doorID and DoorConfigModule:GetDoorConfig( doorID )
 	if not ConfigData then
 		warn('DoorID does not have a configuration setup: ' .. tostring(doorID))
 		return
@@ -85,12 +76,21 @@ function Module:RemoveDoorByModel(Model)
 	end)
 end
 
+function Module:AttemptDoorInteraction( LocalPlayer, DoorModel )
+	local TargetDoorClass = ActiveDoorControllers[ DoorModel ]
+	if not TargetDoorClass then
+		return false, 'Cannot find the door class.'
+	end
+	local Success, err = TargetDoorClass:OnInteractAttempt( LocalPlayer )
+	return Success or false, err or 'Cannot interact with this door.'
+end
+
 function Module:Init(otherSystems)
 	SystemsContainer = otherSystems
 
 	-- require all the controller classes
 	CachedDoorControllerClasses.BaseDoor = require(script.BaseDoor)
-	for _, ControllerModule in ipairs( script:WaitForChild('DoorControllers'):GetChildren() ) do
+	for _, ControllerModule in ipairs( DoorControllersFolder:GetChildren() ) do
 		CachedDoorControllerClasses[ControllerModule.Name ] = require(ControllerModule)
 	end
 
@@ -109,4 +109,3 @@ function Module:Init(otherSystems)
 end
 
 return Module
-

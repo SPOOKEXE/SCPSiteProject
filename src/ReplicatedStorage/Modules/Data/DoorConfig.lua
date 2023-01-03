@@ -45,6 +45,88 @@ function Module:GetDoorConfig( doorID )
 	return false
 end
 
+function Module:GetLevelAndDepartmentFromTool( Tool )
+	if typeof(Tool) == 'Instance' then
+		local LevelAttrib = Tool:GetAttribute('Level')
+		local DepartAttrib = Tool:GetAttribute('Department')
+		return LevelAttrib and tonumber(LevelAttrib), DepartAttrib and tonumber(DepartAttrib)
+	end
+	return false, false
+end
+
+function Module:IsPlayer079( LocalPlayer )
+	return LocalPlayer:GetAttribute('IsSCP079')
+end
+
+function Module:HasClearance( ClearanceConfigTable, HighestLevel, Departments )
+	if #ClearanceConfigTable == 0 then
+		ClearanceConfigTable = { ClearanceConfigTable }
+	end
+	for i, ClearanceConfig in ipairs( ClearanceConfigTable ) do
+		-- If they have any high enough level OR the correct department cards then allow access
+		local enoughKeyLevel = (HighestLevel >= ClearanceConfig.KeyLevel)
+		local hasAllowedDepartment = false
+		-- Check if they have a allowed department
+		for _, departmentIndex in ipairs( Departments ) do
+			hasAllowedDepartment = ClearanceConfig.Clearance[departmentIndex]
+			if hasAllowedDepartment then
+				break
+			end
+		end
+		--print(i, ClearanceConfig, enoughKeyLevel, hasAllowedDepartment)
+		if enoughKeyLevel or hasAllowedDepartment then
+			-- warn( HighestLevel and 'Level' or 'No Level', hasAllowedDepartment and 'Department' or 'No Department' )
+			return true
+		end
+	end
+	--print('cannot')
+	return false
+end
+
+function Module:CanOpenDoor( LocalPlayer, DoorClass )
+	--print(LocalPlayer.Name)
+	if DoorClass:GetAttribute('SCP079Override') and (not Module:IsPlayer079( LocalPlayer )) then
+		--print('SCP-079 override')
+		return false
+	elseif DoorClass:GetAttribute('ControlPanelOverride') then
+		--print('Control panel override')
+		return false
+	end
+
+	local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA('Humanoid')
+	local ClearanceConfig : ClearanceConfigTable = self.Config.ClearanceConfig
+
+	if Humanoid and Humanoid.Health > 0 and ClearanceConfig then
+		local HighestLevel = -1
+		local Departments = { }
+
+		local function CheckToolData(Tool)
+			local LevelValue, DepartmentValue = Module:GetLevelAndDepartmentFromTool(Tool)
+			if LevelValue and LevelValue >= HighestLevel then
+				HighestLevel = LevelValue
+			end
+			if DepartmentValue and not table.find(Departments, DepartmentValue) then
+				table.insert(Departments, DepartmentValue)
+			end
+		end
+
+		-- Check all tools for their level/department values
+		local ActiveTool = LocalPlayer.Backpack:FindFirstChildOfClass('Tool')
+		if ActiveTool then
+			CheckToolData(ActiveTool)
+		end
+		for _, Tool in ipairs( LocalPlayer.Backpack:GetChildren() ) do
+			CheckToolData(Tool)
+		end
+
+		--print(HighestLevel, Departments, ClearanceConfig)
+		return Module:HasClearance( ClearanceConfig, HighestLevel, Departments )
+	end
+
+	--print('no config - open for all')
+	return (ClearanceConfig == nil) -- no config = open for all
+end
+
 Module.ClearanceConfig = {
 	NoRestriction = {
 		KeyLevel = 0,
