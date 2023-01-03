@@ -35,7 +35,7 @@ local Class = { SystemsContainer = {} }
 Class.__index = Class
 Class.super = false
 
-function Class.New(Model, forceState)
+function Class.New( Model )
 	local ConfigTable = DoorConfigModule:GetDoorConfig( Model.Name ) :: DoorConfigTable
 
 	local self = setmetatable({
@@ -48,19 +48,11 @@ function Class.New(Model, forceState)
 		DoorControlNodes = {},
 		Config = ConfigTable,
 
-		_LastState = Model:GetAttribute('StateValue'), -- last state of the door
+		_LastState = nil,
 	}, Class)
 
-	local DoorModel = Model:FindFirstChild('Door')
-	if typeof(DoorModel) ~= 'Instance' or (not DoorModel:IsA('Model')) then
-		DoorModel = Model
-	end
-
-	--local boundCF, boundSize = DoorModel:GetBoundingBox()
-	--local bPart = Model:FindFirstChildWhichIsA('Detector')
-
 	self:Setup()
-	self:Toggle(false, forceState)
+	self:Update( true )
 
 	return self
 end
@@ -77,23 +69,11 @@ function Class:GetAttributeChangedSignal(attribute)
 	return self.Model:GetAttributeChangedSignal(attribute)
 end
 
-function Class:Toggle( noSound, forceState )
+function Class:Update( noSound )
 	if self:GetAttribute('DoorDestroyedValue') then
 		return false
 	end
-
-	if typeof(forceState) == 'boolean' then
-		self._LastState = forceState
-	end
-
-	local isOpen = self:GetAttribute('StateValue')
-	if self._LastState == isOpen then
-		return false
-	end
-	self._LastState = isOpen
-
-	warn('Door Toggled: ', self:GetAttribute('DoorID'), self:GetAttribute('StateValue'))
-
+	self._LastState = self:GetAttribute('StateValue')
 	return true
 end
 
@@ -141,10 +121,10 @@ function Class:PlaySound( isDoorOpening, stopAll )
 end
 
 function Class:Setup()
-	self:Toggle( true )
+	self:Update(true)
 
 	self:GetAttributeChangedSignal('StateValue'):Connect(function()
-		self:Toggle( )
+		self:Update( )
 	end)
 
 	self:GetAttributeChangedSignal('DoorDestroyed'):Connect(function()
@@ -156,7 +136,7 @@ end
 function Class:Demolish()
 	if not self.Destroyed then
 		self.Destroyed = true
-		print('door destroyed - ', self.Model:GetFullName())
+		warn('door destroyed - ', self.Model:GetFullName())
 		return true
 	end
 	return false

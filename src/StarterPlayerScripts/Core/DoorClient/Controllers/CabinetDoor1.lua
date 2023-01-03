@@ -24,6 +24,8 @@ function Class.New(...)
 	CFValue.Parent = self.Model
 	self.CFrameValue = CFValue
 
+	self:Update(true)
+
 	return setmetatable(self, Class)
 end
 
@@ -40,8 +42,8 @@ function Class:Demolish()
 	return false
 end
 
-function Class:Toggle( noSound )
-	if not Class.super.Toggle(self) then
+function Class:Update( noSound )
+	if not Class.super.Update(self, noSound) then
 		return false
 	end
 

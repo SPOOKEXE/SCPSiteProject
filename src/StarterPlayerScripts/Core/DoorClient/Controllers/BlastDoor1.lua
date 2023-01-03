@@ -24,6 +24,8 @@ function Class.New(...)
 	CFValue.Parent = self.Model
 	self.CFrameValue = CFValue
 
+	self:Update(true)
+
 	return self
 end
 
@@ -40,13 +42,13 @@ function Class:Demolish()
 	return false
 end
 
-function Class:Toggle( noSound, forceState )
-	if not Class.super.Toggle(self, noSound, forceState) then
+function Class:Update( noSound )
+	if not Class.super.Update(self, noSound) then
 		return false
 	end
 
-	local isOpen = self:GetAttribute('StateValue')
-	local nextCFrame = isOpen and self.OpenCFrame or self.CloseCFrame
+	local isClosed = self:GetAttribute('StateValue')
+	local nextCFrame = isClosed and self.CloseCFrame or self.OpenCFrame
 
 	local maxDeltaY = (self.OpenCFrame.Position - self.CloseCFrame.Position).Y
 
@@ -62,9 +64,9 @@ function Class:Toggle( noSound, forceState )
 	end)
 	Tween:Play()
 
-	if not noSound and deltaDecimal > 0.1 then
+	if (not noSound) and (deltaDecimal > 0.1) then
 		task.delay(0.025, function()
-			self:PlaySound( isOpen, nil )
+			self:PlaySound( not isClosed, nil )
 		end)
 	end
 

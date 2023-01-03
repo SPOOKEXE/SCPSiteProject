@@ -31,7 +31,7 @@ local Module = {}
 function Module:RegisterDoor( DoorModel )
 	-- Is the door an instance?
 	if typeof(DoorModel) ~= 'Instance' then
-		warn('DoorModel is not an instance. ' .. typeof(DoorModel) .. "\n" .. debug.traceback())
+		--warn('DoorModel is not an instance. ' .. typeof(DoorModel) .. "\n" .. debug.traceback())
 		return false
 	end
 
@@ -41,7 +41,7 @@ function Module:RegisterDoor( DoorModel )
 	-- does this doorId have a configuration setup?
 	local ConfigData = doorID and DoorConfigModule:GetDoorConfig( doorID )
 	if not ConfigData then
-		warn('DoorID does not have a configuration setup: ' .. tostring(doorID))
+		--warn('DoorID does not have a configuration setup: ' .. tostring(doorID))
 		return
 	end
 
@@ -54,7 +54,7 @@ function Module:RegisterDoor( DoorModel )
 	end
 
 	if not ControllerClass then
-		warn('[DOOR CONTROLLER - SERVER] No Door Controller Found: '..tostring(ConfigData.ClientDoorClassID or ConfigData.DoorClassID))
+		--warn('[DOOR CONTROLLER - SERVER] No Door Controller Found: '..tostring(ConfigData.ClientDoorClassID or ConfigData.DoorClassID))
 		return
 	end
 

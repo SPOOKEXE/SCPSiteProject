@@ -66,19 +66,18 @@ end
 
 function Class:_SetupAttributes()
 	self:SetAttribute('DoorID', self.Config.DoorClassID)
-	self:SetAttribute('StateValue', false) -- true = open
+	self:SetAttribute('StateValue', false) -- false = open
 	self:SetAttribute('DoorDestroyed', false)
-	self:SetAttribute('PowerEnabledOverride', false)
-	self:SetAttribute('ControlPanelOverride', false)
-	self:SetAttribute('SCP079Override', false)
-	self:SetAttribute('IsDoorBroken', false)
+	-- self:SetAttribute('PowerEnabledOverride', false)
+	-- self:SetAttribute('ControlPanelOverride', false)
+	-- self:SetAttribute('SCP079Override', false)
+	-- self:SetAttribute('IsDoorBroken', false)
 	self:SetAttribute('DoorSector', false)
 	self:SetAttribute('DoorUUID', self.UUID)
 end
 
 function Class:_Setup()
-	local boundCF, boundSize = self.Model:GetBoundingBox()
-
+	--[[local boundCF, boundSize = self.Model:GetBoundingBox()
 	local bPart = Instance.new('Part')
 	bPart.Name = 'Detector'
 	bPart.CFrame = boundCF
@@ -88,37 +87,37 @@ function Class:_Setup()
 	bPart.Transparency = 1
 	bPart.CanCollide = false
 	bPart.CanTouch = false
-	bPart.Parent = self.Model
+	bPart.Parent = self.Model]]
 
-	-- // TESTING PURPOSES // --
-	local proximityPrompt = Instance.new('ProximityPrompt')
-	proximityPrompt.Name = 'ToggleDoorPrompt'
-	proximityPrompt.Enabled = true
-	proximityPrompt.ActionText = 'Toggle Door'
-	proximityPrompt.ObjectText = 'Door'
-	proximityPrompt.ClickablePrompt = true
-	proximityPrompt.KeyboardKeyCode = Enum.KeyCode.F
-	proximityPrompt.HoldDuration = 0.25
-	proximityPrompt.MaxActivationDistance = 12
-	proximityPrompt.RequiresLineOfSight = false
-	proximityPrompt.Exclusivity = Enum.ProximityPromptExclusivity.OneGlobally
-	proximityPrompt.Triggered:Connect(function(LocalPlayer)
-		self:Toggle()
-	end)
-	proximityPrompt.Parent = self.Model:FindFirstChild('PromptNode') or self.Model
-
-	-- // ---------------- // --
+	local ControllersCount = 0
 	for _, ObjectVal in ipairs(self.Model:GetChildren()) do
 		if ObjectVal:IsA('ObjectValue') and ObjectVal.Name == 'ControlNode' then
+			ControllersCount += 1
 			self:_SetupControllerNode( ObjectVal )
 		end
 	end
 
-	if #self.DoorControlNodes > 0 then
-		self:SetAttribute('IgnoreDoor', true)
+	-- // TESTING PURPOSES // --
+	if ControllersCount == 0 then
+		local proximityPrompt = Instance.new('ProximityPrompt')
+		proximityPrompt.Name = 'ToggleDoorPrompt'
+		proximityPrompt.Enabled = true
+		proximityPrompt.ActionText = 'Toggle Door'
+		proximityPrompt.ObjectText = 'Door'
+		proximityPrompt.ClickablePrompt = true
+		proximityPrompt.KeyboardKeyCode = Enum.KeyCode.F
+		proximityPrompt.HoldDuration = 0.25
+		proximityPrompt.MaxActivationDistance = 12
+		proximityPrompt.RequiresLineOfSight = false
+		proximityPrompt.Exclusivity = Enum.ProximityPromptExclusivity.OneGlobally
+		proximityPrompt.Triggered:Connect(function(LocalPlayer)
+			self:Toggle( )
+		end)
+		proximityPrompt.Parent = self.Model:FindFirstChild('PromptNode') or self.Model
 	end
+	-- // ---------------- // --
 
-	self:GetAttributeChangedSignal('IsElectricalBrokenOverride'):Connect(function()
+	--[[self:GetAttributeChangedSignal('IsElectricalBrokenOverride'):Connect(function()
 		if self:GetAttribute('IsElectricalBrokenOverride') then
 			if Random.new():NextInteger(1, 2) == 1 then
 				while self:GetAttribute('IsElectricalBrokenOverride') do
@@ -129,7 +128,7 @@ function Class:_Setup()
 				self:Toggle(false)
 			end
 		end
-	end)
+	end)]]
 end
 
 function Class:_SetupControllerNode( ObjectVal )
@@ -139,7 +138,7 @@ function Class:_SetupControllerNode( ObjectVal )
 		return false
 	end
 
-	task.spawn(function()
+	task.defer(function()
 		self:Toggle( ObjectVal.Value:GetAttribute('StateValue') )
 	end)
 
@@ -211,7 +210,7 @@ function Class:Demolish()
 end
 
 function Class:Toggle( forceState )
-	print('Toggle Door - ', self.Model:GetFullName(), ' - ', forceState)
+	--print('Toggle Door - ', self.Model:GetFullName(), ' - ', forceState)
 	if self:GetAttribute('DoorDestroyedValue') then
 		return false
 	end
@@ -236,7 +235,7 @@ function Class:OnInteracted(LocalPlayer)
 		return false, 'Door is currently busy.'
 	end
 
-	print( 'Interaction Successful - ', LocalPlayer, self.Model:GetFullName() )
+	print('Interaction Successful - ', LocalPlayer, self.Model:GetFullName())
 
 	self.Debounce = true
 	self:Toggle( )
