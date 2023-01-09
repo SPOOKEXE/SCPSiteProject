@@ -23,7 +23,28 @@ function Class.New(SCP_ID)
 	return self
 end
 
+function Class:IsAvailableToPlayer(LocalPlayer)
+	return false
+end
+
+function Class:IsPlayerThisSCP(LocalPlayer)
+	return false
+end
+
+function Class:SetPlayerAsSCP(LocalPlayer)
+	return false
+end
+
+function Class:RemovePlayerFromSCP(LocalPlayer)
+	return false
+end
+
+function Class:OnPlayerAction(LocalPlayer, ActionName, ...)
+	return false, 'BaseClasss has no action setup for action of id ' .. tostring(ActionName)
+end
+
 function Class:Destroy()
+	self.Maid:Cleanup()
 	return true
 end
 

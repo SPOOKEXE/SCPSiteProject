@@ -1,7 +1,7 @@
 local HttpService = game:GetService('HttpService')
 
 -- // Class // --
-local Class = { SystemsContainer = {} }
+local Class = { ClassName = 'BaseController', SystemsContainer = {} }
 Class.__index = Class
 
 function Class.New( Model, forceState )
@@ -16,6 +16,10 @@ function Class.New( Model, forceState )
 	self:_Setup()
 
 	return self
+end
+
+function Class:IsA(className)
+	return self.ClassName == className or (self.super and self.super.IsA(self, className))
 end
 
 function Class:GetAttribute(attribute)

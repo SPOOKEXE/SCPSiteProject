@@ -1,7 +1,7 @@
 local BaseControllerClassModule = require(script.Parent.Parent.BaseController)
 
 -- // Class // --
-local Class = setmetatable({SystemsContainer = {}}, BaseControllerClassModule)
+local Class = setmetatable({ClassName = 'LeverController', SystemsContainer = {}}, BaseControllerClassModule)
 Class.__index = Class
 Class.super = BaseControllerClassModule
 

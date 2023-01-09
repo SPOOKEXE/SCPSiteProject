@@ -1,5 +1,3 @@
-local Players = game:GetService('Players')
-
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ReplicatedModules = require(ReplicatedStorage:WaitForChild('Modules'))
 
@@ -11,18 +9,12 @@ local Module = { SystemsContainer = {} }
 Module.ActivePlayer = false
 Module.ActorMaid = MaidInstanceClass.New()
 
-function Module:IsSCPAvailableTo(LocalPlayer) -- can use local player for gamepass checks
+function Module:IsAvailableToPlayer(LocalPlayer) -- can use local player for gamepass checks
 	return (Module.ActivePlayer == nil)
 end
 
-function Module:IsPlayerSCP(LocalPlayer)
+function Module:IsPlayerThisSCP(LocalPlayer)
 	return Module.ActivePlayer == LocalPlayer
-end
-
-function Module:RemovePlayerSCP(LocalPlayer)
-	if Module:IsPlayerSCP(LocalPlayer) then
-		Module:SetPlayerAsSCP(nil)
-	end
 end
 
 function Module:SetPlayerAsSCP(LocalPlayer)
@@ -37,6 +29,10 @@ function Module:SetPlayerAsSCP(LocalPlayer)
 		print(LocalPlayer.Name, 'setup 079 stuff')
 		-- Setup player character + camera + ui through remotes
 	end
+end
+
+function Module:RemovePlayerSCP(LocalPlayer)
+	Module:SetPlayerAsSCP(nil)
 end
 
 function Module:OnPlayerAction(LocalPlayer, ActionName, ...)

@@ -6,6 +6,10 @@ local ReplicatedModules = require(ReplicatedStorage:WaitForChild('Modules'))
 
 local SCPConfigModule = ReplicatedModules.Data.SCPConfig
 
+local RemoteService = ReplicatedModules.Services.RemoteService
+local SCPEntityEvent = RemoteService:GetRemote('SCPEntityEvent', 'RemoteEvent', false)
+local SCPEntityFunction = RemoteService:GetRemote('SCPEntityFunction', 'RemoteFunction', false)
+
 local SystemsContainer = {}
 
 local CachedSCPEntityClasses = {}
@@ -15,7 +19,7 @@ local PlayerToSCPClass = {}
 local SCPModelToSCPClass = {}
 
 local EntitiesFolder = script:WaitForChild('Entities')
-local PlayerControlsFolder = script:WaitForChild('PlayerControlled')
+local PlayerControlsFolder = script:WaitForChild('Player')
 
 -- // Module // --
 local Module = {}
