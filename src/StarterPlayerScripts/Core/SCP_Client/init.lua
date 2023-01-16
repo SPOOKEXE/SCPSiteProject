@@ -19,7 +19,7 @@ local PlayerToSCPClass = {}
 local SCPModelToSCPClass = {}
 
 local EntitiesFolder = script:WaitForChild('Entities')
-local PlayerControlsFolder = script:WaitForChild('PlayerControlled')
+local PlayerControlsFolder = script:WaitForChild('Client')
 
 -- // Module // --
 local Module = {}
@@ -65,7 +65,7 @@ function Module:AttemptToSetPlayerSCPFromID(LocalPlayer)
 	return Module:SetPlayerAsSCP(LocalPlayer, SCP_ID)
 end
 
-function Module:RemovePlayerAsSCP(LocalPlayer)
+function Module:RemovePlayerFromSCP(LocalPlayer)
 	local ActiveSCPClass = PlayerToSCPClass[LocalPlayer]
 	if not ActiveSCPClass then
 		return

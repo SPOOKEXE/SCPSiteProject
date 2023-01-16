@@ -23,6 +23,27 @@ Module.GroupIds = {
 	ChaosInsurgency = -1,
 }
 
+Module.TeamCategories = {
+	SCPF = {
+		'Scientific Department',
+		'Security Department',
+		'Medical Department',
+		'Mobile Task Force',
+		'Tribunal Department',
+		'Logistics Department',
+		'Internal Security Department',
+		'Intelligence Agency',
+		'External Affairs',
+		'Ethics Committee',
+		'Engineering and Technical',
+		'Manufacturing Department',
+		'Administrative Department',
+	},
+	DOI = {
+		'Chaos-Insurgency',
+	},
+}
+
 Module.Teams = {
 	['Administrative Department'] = {
 		GroupId = Module.GroupIds.AdministrativeDepartment,
